@@ -24,9 +24,5 @@
     ],
     "outDir": "dist/compiled",
     "baseUrl": "./src"
-  },
-  "include": [
-    "src",
-    "test"
-  ]
+  }
 }
