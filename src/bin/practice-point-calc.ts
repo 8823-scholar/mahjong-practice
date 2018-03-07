@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
+import * as Table from "cli-table";
 import * as emoji from "node-emoji";
 import optimist from "optimist";
 import { question, keyInSelect } from "readline-sync";
 
-import { Point } from "models";
+import { Point, childPointList, parentPointList } from "models";
 import PointCalculator from "services/PointCalculator";
 
 const usage = `
@@ -33,8 +34,46 @@ const opts = optimist(defaults)
 
 const argv = opts.argv;
 
+// ヘルプの表示
 if (argv.help) {
   opts.showHelp(console.log);
+  process.exit();
+}
+
+// 得点表の表示
+if (argv.list) {
+  // 子の点数表
+  const childTable = new Table({
+    head: ["", "1ﾊﾝ", "2ﾊﾝ", "3ﾊﾝ", "4ﾊﾝ"],
+    colWidths: [10, 15, 15, 15, 15],
+  });
+  childPointList.matrix.forEachRow((row, fu) => {
+    const cells = [];
+    for (let i = 0; i < 4; i++) {
+      cells.push(row.get(i) ? `${row.get(i)!.ron}\n${row.get(i)!.tsumo[0]}/${row.get(i)!.tsumo[1]}` : "");
+    }
+    childTable.push({[`${fu}ﾌ`]: cells});
+  });
+
+  console.log(`### ${childPointList.role.name}の得点表`);
+  console.log(childTable.toString());
+
+  // 親の点数表
+  const parentTable = new Table({
+    head: ["", "1ﾊﾝ", "2ﾊﾝ", "3ﾊﾝ", "4ﾊﾝ"],
+    colWidths: [10, 15, 15, 15, 15],
+  });
+  parentPointList.matrix.forEachRow((row, fu) => {
+    const cells = [];
+    for (let i = 0; i < 4; i++) {
+      cells.push(row.get(i) ? `${row.get(i)!.ron}\n${row.get(i)!.tsumo[0]}ｵｰﾙ` : "");
+    }
+    parentTable.push({[`${fu}ﾌ`]: cells});
+  });
+
+  console.log(`### ${parentPointList.role.name}の得点表`);
+  console.log(parentTable.toString());
+
   process.exit();
 }
 
@@ -59,7 +98,7 @@ while (true) {
   } else {
     const input = question("ロン時の得点で解答してください: ");
     try {
-      answer = PointCalculator.list(collect.role).find(collect.hang, collect.fu, input);
+      answer = PointCalculator.list(collect.role).find(collect.hang, collect.fu, parseInt(input, 10));
     } catch {
       answer = new Point();
     }

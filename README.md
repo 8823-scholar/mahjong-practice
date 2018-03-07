@@ -1,7 +1,5 @@
 ## 麻雀練習
 
-![](screenshot.png)
-
 - 得点暗記クイズ
 
 ### インストール
@@ -15,3 +13,14 @@ $ yarn
 ```bash
 $ yarn practice-point-calc
 ```
+
+![](screenshot1.png)
+
+
+### 得点表
+
+```bash
+$ yarn practice-point-calc --list
+```
+
+![](screenshot2.png)

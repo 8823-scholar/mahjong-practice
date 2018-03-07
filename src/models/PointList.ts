@@ -21,6 +21,10 @@ export class PointList extends RPointList {
     return this.points.size;
   }
 
+  get matrix() {
+    return this.toMatrix();
+  }
+
   add(hang: number, fu: number, point: number): this {
     return this.update("points", (points) => points.push(new Point({role: this.role, hang, fu, point})));
   }
@@ -30,7 +34,7 @@ export class PointList extends RPointList {
   }
 
   find(hang: number, fu: number, point?: number): Point {
-    const p = this.points.find((p) => p.hang === hang && p.fu === fu);
+    const p = this.points.find((_p) => _p.hang === hang && _p.fu === fu);
     if (! p)
       throw new Error("invalid hang or fu.");
     if (point !== undefined && point !== p.point)
@@ -46,8 +50,71 @@ export class PointList extends RPointList {
     return point;
   }
 
+  toMatrix(): Matrix {
+    const matrix = new Matrix(4, 11);
+
+    this.points.forEach((p) => matrix.set(p.matrixCol, p.matrixRow, p));
+
+    return matrix;
+  }
+
   static create(role: Role) {
     return new PointList({role});
+  }
+}
+
+type MatrixValue = Point | null;
+interface MatrixCell {
+  col: number;
+  row: number;
+  value: MatrixValue;
+}
+type MatrixRow = List<MatrixValue>;
+
+class Matrix {
+  rows: number;
+  cols: number;
+  matrix: List<MatrixRow> = List<MatrixRow>();
+
+  constructor(cols: number, rows: number) {
+    this.rows = rows;
+    this.cols = cols;
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        this.set(j, i, null);
+      }
+    }
+  }
+
+  set(col: number, row: number, value: MatrixValue) {
+    const matrixRow: MatrixRow = this.matrix.get(row) || List<MatrixValue>();
+    this.matrix = this.matrix.set(row, matrixRow.set(col, value));
+  }
+
+  get(col: number, row: number): MatrixValue {
+    const matrixRow = this.matrix.get(row);
+    if (! matrixRow)
+      return null;
+
+    return matrixRow.get(col) || null;
+  }
+
+  forEach(fn: (c: MatrixCell) => void) {
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.cols; j++) {
+        fn({col: j, row: i, value: this.get(j, i)});
+      }
+    }
+  }
+
+  forEachRow(fn: (r: MatrixRow, fu: number) => void) {
+    for (let i = 0; i < this.rows; i++) {
+      const row = this.matrix.get(i);
+      if (row) {
+        const fu = row.find((c) => !!c)!.fu;
+        fn(row, fu);
+      }
+    }
   }
 }
 
