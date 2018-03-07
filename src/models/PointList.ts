@@ -29,11 +29,13 @@ export class PointList extends RPointList {
     return this;
   }
 
-  find(hang: number, fu: number): Point {
-    const point = this.points.find((p) => p.hang === hang && p.fu === fu);
-    if (! point)
+  find(hang: number, fu: number, point?: number): Point {
+    const p = this.points.find((p) => p.hang === hang && p.fu === fu);
+    if (! p)
       throw new Error("invalid hang or fu.");
-    return point;
+    if (point !== undefined && point !== p.point)
+      throw new Error("invalid hang or fu.");
+    return p;
   }
 
   random(option: {except?: Point[], strict?: boolean} = {}): Point {

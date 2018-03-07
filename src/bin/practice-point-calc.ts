@@ -2,17 +2,32 @@
 
 import * as emoji from "node-emoji";
 import optimist from "optimist";
-import { keyInSelect } from "readline-sync";
+import { question, keyInSelect } from "readline-sync";
 
+import { Point } from "models";
 import PointCalculator from "services/PointCalculator";
 
 const usage = `
 得点表暗記練習
 ランダムに出題します
+
+Usage: yarn practice-point-calc
 `;
 
-const opts = optimist({list: false, help: false})
-  .usage(`${usage}\nUsage: yarn practice-point-calc`)
+enum InputType {
+  Select = "select",
+  Text = "text",
+}
+
+const defaults = {
+  input: InputType.Select,
+  list: false,
+  help: false,
+};
+
+const opts = optimist(defaults)
+  .usage(usage)
+  .describe("input", "入力方式(select: 選択式、text: 入力式).")
   .describe("list", "得点表を表示.")
   .describe("help", "show help.");
 
@@ -24,20 +39,32 @@ if (argv.help) {
 }
 
 while (true) {
-  const question = PointCalculator.random();
-  const collect = question;
-  const answers = PointCalculator.sample(4, {except: [question], strict: false})
-                    .push(collect)
-                    .sortBy(Math.random);
+  const quest = PointCalculator.random();
+  const collect = quest;
+  console.log(`${quest.role.name} ${quest.hang}翻 ${quest.fu}符の得点は？`);
 
-  console.log(`${question.role.name} ${question.hang}翻 ${question.fu}符の得点は？`);
+  // 選択式
+  let answer: Point;
+  if (argv.input === InputType.Select) {
+    const answers = PointCalculator.sample(4, {except: [quest], strict: false})
+                      .push(collect)
+                      .sortBy(Math.random);
+    const index = keyInSelect(answers.map((a) => a.point.toString()).toArray());
+    if (index < 0) {
+      process.exit();
+    }
+    answer = answers.get(index)!;
 
-  const index = keyInSelect(answers.map((a) => a.point.toString()).toArray());
-  if (index < 0) {
-    process.exit();
+  // 入力式
+  } else {
+    const input = question("ロン時の得点で解答してください: ");
+    try {
+      answer = PointCalculator.list(collect.role).find(collect.hang, collect.fu, input);
+    } catch {
+      answer = new Point();
+    }
   }
 
-  const answer = answers.get(index)!;
   if (answer.same(collect)) {
     console.log(emoji.get(":ok_woman:"));
   } else {
