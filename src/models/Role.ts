@@ -18,7 +18,19 @@ export const ORole: IRole = {
 export const RRole = Record<IRole>(ORole);
 
 export class Role extends RRole {
-}
+  get isChild() {
+    return this.type === RoleType.Child;
+  }
 
-export const parent = new Role({type: RoleType.Parent, name: "親"});
-export const child = new Role({type: RoleType.Child, name: "子"});
+  get isParent() {
+    return !this.isChild;
+  }
+
+  static get Parent() {
+    return new Role({type: RoleType.Parent, name: "親"});
+  }
+
+  static get Child() {
+    return new Role({type: RoleType.Child, name: "子"});
+  }
+}
