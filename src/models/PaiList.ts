@@ -1,18 +1,43 @@
-import { Record } from "immutable";
+import { List } from "immutable";
 
 import { Pai } from "models/Pai";
 
-export interface IPaiList {
-  list: Pai[];
-  tsumo: Pai;
-}
+export class PaiList {
+  list: List<Pai> = List();
 
-export const OPaiList: IPaiList = {
-  list: [],
-  tsumo: new Pai(),
-};
+  add(pai: Pai) {
+    this.list = this.list.push(pai);
+  }
 
-export const RPaiList = Record<IPaiList>(OPaiList);
+  drawLine(index: number) {
+    const line: string[] = [];
 
-export class PaiList extends RPaiList {
+    this.list.forEach((pai) => line.push(pai.drawLine(index)));
+
+    return line.join("") + "\n";
+  }
+
+  get(index: number) {
+    return this.list.get(index);
+  }
+
+  get width() {
+    let width = 0;
+
+    this.list.forEach((p) => width = width + p.width);
+
+    return width;
+  }
+
+  get height() {
+    let height = 0;
+
+    this.list.forEach((p) => height = height < p.height ? p.height : height);
+
+    return height;
+  }
+
+  get length() {
+    return this.list.size;
+  }
 }
